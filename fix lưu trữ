@@ -1,0 +1,32 @@
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+local playerGui = localPlayer:WaitForChild("PlayerGui")
+
+local targetFont = Enum.Font.Arcade
+
+local function applyMinecraftFont(obj)
+    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+        pcall(function()
+            if obj.Font ~= targetFont then
+                obj.Font = targetFont
+            end
+        end)
+    end
+end
+
+-- Quét và đổi các UI hiện tại
+for _, gui in ipairs(playerGui:GetChildren()) do
+    for _, descendant in ipairs(gui:GetDescendants()) do
+        applyMinecraftFont(descendant)
+    end
+end
+
+-- Lắng nghe khi có UI mới xuất hiện (Cực kỳ nhẹ, không gây lag)
+playerGui.DescendantAdded:Connect(function(child)
+    task.spawn(function()
+        applyMinecraftFont(child)
+        for _, descendant in ipairs(child:GetDescendants()) do
+            applyMinecraftFont(descendant)
+        end
+    end)
+end)
