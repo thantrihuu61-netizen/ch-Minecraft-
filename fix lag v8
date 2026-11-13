@@ -1,0 +1,313 @@
+
+--==================================================
+-- HUU FPS BOOST APOCALYPSE V8
+-- BLOX FRUITS | DELTA ANDROID
+-- ULTRA LOW GRAPHICS
+--==================================================
+
+repeat task.wait() until game:IsLoaded()
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+
+local Player = Players.LocalPlayer
+
+-- CONFIG
+local CONFIG = {
+    RemoveParticles = true,
+    RemoveLights = true,
+    RemoveTextures = true,
+    RemovePostEffects = true,
+    RemoveShadows = true,
+    Grayscale = true,
+    LowMaterials = true
+}
+
+-- CLEAN OLD GUI
+local old = Player.PlayerGui:FindFirstChild("HUU_APOCALYPSE_V8")
+if old then old:Destroy() end
+
+-- GRAPHICS QUALITY
+pcall(function()
+    settings().Rendering.QualityLevel =
+        Enum.QualityLevel.Level01
+
+    settings().Rendering.MeshPartDetailLevel =
+        Enum.MeshPartDetailLevel.Level01
+end)
+
+-- LIGHTING
+pcall(function()
+    Lighting.GlobalShadows = false
+    Lighting.Brightness = 1
+    Lighting.FogEnd = 1000000
+    Lighting.EnvironmentDiffuseScale = 0
+    Lighting.EnvironmentSpecularScale = 0
+    Lighting.ExposureCompensation = 0
+end)
+
+-- TERRAIN
+pcall(function()
+    local terrain = Workspace.Terrain
+
+    terrain.Decoration = false
+    terrain.WaterWaveSize = 0
+    terrain.WaterWaveSpeed = 0
+    terrain.WaterReflectance = 0
+end)
+
+-- GRAYSCALE
+local function GrayColor(color)
+    local gray =
+        color.R * 0.299 +
+        color.G * 0.587 +
+        color.B * 0.114
+
+    return Color3.new(gray, gray, gray)
+end
+
+-- EFFECT CLEANER
+local function Optimize(obj)
+    pcall(function()
+
+        -- PARTICLES AND SKILL EFFECTS
+        if CONFIG.RemoveParticles then
+            if obj:IsA("ParticleEmitter") then
+                obj.Enabled = false
+                obj:Clear()
+
+            elseif obj:IsA("Trail")
+            or obj:IsA("Beam")
+            or obj:IsA("Fire")
+            or obj:IsA("Smoke")
+            or obj:IsA("Sparkles") then
+                obj.Enabled = false
+            end
+        end
+
+        -- LIGHTS
+        if CONFIG.RemoveLights then
+            if obj:IsA("PointLight")
+            or obj:IsA("SpotLight")
+            or obj:IsA("SurfaceLight") then
+                obj.Enabled = false
+            end
+        end
+
+        -- POST EFFECTS
+        if CONFIG.RemovePostEffects then
+            if obj:IsA("PostEffect") then
+                obj.Enabled = false
+            end
+        end
+
+        -- TEXTURES
+        if CONFIG.RemoveTextures then
+            if obj:IsA("Decal")
+            or obj:IsA("Texture") then
+                obj.Transparency = 1
+
+            elseif obj:IsA("SurfaceAppearance") then
+                obj:Destroy()
+
+            elseif obj:IsA("MeshPart") then
+                obj.TextureID = ""
+
+            elseif obj:IsA("SpecialMesh") then
+                obj.TextureId = ""
+            end
+        end
+
+        -- HIGHLIGHTS
+        if obj:IsA("Highlight") then
+            obj.Enabled = false
+        end
+
+        -- ATMOSPHERE
+        if obj:IsA("Atmosphere") then
+            obj.Density = 0
+            obj.Haze = 0
+            obj.Glare = 0
+        end
+
+        -- CLOUDS
+        if obj:IsA("Clouds") then
+            obj.Enabled = false
+        end
+
+        -- PART OPTIMIZATION
+        if obj:IsA("BasePart") then
+            if CONFIG.RemoveShadows then
+                obj.CastShadow = false
+            end
+
+            if CONFIG.LowMaterials then
+                obj.Material = Enum.Material.Plastic
+                obj.Reflectance = 0
+            end
+
+            if CONFIG.Grayscale then
+                obj.Color = GrayColor(obj.Color)
+            end
+        end
+    end)
+end
+
+-- INITIAL OPTIMIZATION
+for _, obj in ipairs(Workspace:GetDescendants()) do
+    Optimize(obj)
+end
+
+for _, obj in ipairs(Lighting:GetDescendants()) do
+    Optimize(obj)
+end
+
+-- NEW OBJECT OPTIMIZATION
+Workspace.DescendantAdded:Connect(Optimize)
+Lighting.DescendantAdded:Connect(Optimize)
+
+--==================================================
+-- FPS GUI
+--==================================================
+
+local GUI = Instance.new("ScreenGui")
+GUI.Name = "HUU_APOCALYPSE_V8"
+GUI.ResetOnSpawn = false
+GUI.DisplayOrder = 999
+GUI.Parent = Player:WaitForChild("PlayerGui")
+
+local Main = Instance.new("Frame")
+Main.Size = UDim2.fromOffset(150, 52)
+Main.Position = UDim2.new(0.03, 0, 0.35, 0)
+Main.BackgroundColor3 = Color3.new(0, 0, 0)
+Main.BorderSizePixel = 0
+Main.Parent = GUI
+
+Instance.new("UICorner", Main).CornerRadius =
+    UDim.new(0, 10)
+
+local Border = Instance.new("UIStroke")
+Border.Thickness = 2
+Border.Parent = Main
+
+local Label = Instance.new("TextLabel")
+Label.Size = UDim2.new(1, -28, 1, 0)
+Label.Position = UDim2.fromOffset(5, 0)
+Label.BackgroundTransparency = 1
+Label.Text = "FPS: 0"
+Label.TextSize = 21
+Label.Font = Enum.Font.GothamBold
+Label.Parent = Main
+
+-- CLOSE
+local Close = Instance.new("TextButton")
+Close.Size = UDim2.fromOffset(25, 25)
+Close.Position = UDim2.new(1, -25, 0, 0)
+Close.BackgroundTransparency = 1
+Close.Text = "×"
+Close.TextSize = 20
+Close.TextColor3 = Color3.new(1, 1, 1)
+Close.Parent = Main
+
+-- REOPEN
+local Reopen = Instance.new("TextButton")
+Reopen.Size = UDim2.fromOffset(42, 42)
+Reopen.Position = Main.Position
+Reopen.BackgroundColor3 = Color3.new(0, 0, 0)
+Reopen.Text = "FPS"
+Reopen.TextSize = 13
+Reopen.Font = Enum.Font.GothamBold
+Reopen.Visible = false
+Reopen.Parent = GUI
+
+Instance.new("UICorner", Reopen).CornerRadius =
+    UDim.new(1, 0)
+
+local RB = Instance.new("UIStroke")
+RB.Thickness = 2
+RB.Parent = Reopen
+
+Close.Activated:Connect(function()
+    Main.Visible = false
+    Reopen.Visible = true
+end)
+
+Reopen.Activated:Connect(function()
+    Main.Visible = true
+    Reopen.Visible = false
+end)
+
+-- DRAG MOBILE
+local dragging = false
+local dragStart
+local startPosition
+
+Main.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch
+    or input.UserInputType == Enum.UserInputType.MouseButton1 then
+
+        dragging = true
+        dragStart = input.Position
+        startPosition = Main.Position
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if dragging and (
+        input.UserInputType == Enum.UserInputType.Touch
+        or input.UserInputType == Enum.UserInputType.MouseMovement
+    ) then
+
+        local delta = input.Position - dragStart
+
+        Main.Position = UDim2.new(
+            startPosition.X.Scale,
+            startPosition.X.Offset + delta.X,
+            startPosition.Y.Scale,
+            startPosition.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch
+    or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+-- FPS RGB 7 COLORS
+local frames = 0
+local last = os.clock()
+local hue = 0
+local colorUpdate = 0
+
+RunService.RenderStepped:Connect(function()
+    frames += 1
+
+    local now = os.clock()
+
+    if now - colorUpdate >= 0.04 then
+        hue = (hue + 0.01) % 1
+
+        local color = Color3.fromHSV(hue, 1, 1)
+
+        Label.TextColor3 = color
+        Border.Color = color
+        Reopen.TextColor3 = color
+        RB.Color = color
+
+        colorUpdate = now
+    end
+
+    if now - last >= 1 then
+        Label.Text = "FPS: " .. frames
+        frames = 0
+        last = now
+    end
+end)
+
+print("HUU FPS APOCALYPSE V8 LOADED")
